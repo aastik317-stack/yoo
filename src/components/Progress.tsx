@@ -1,76 +1,109 @@
+import { useState, useEffect } from 'react';
 import { Trophy, Target, Zap, Award, Calendar, TrendingUp } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 export function Progress() {
+  const { profile, user } = useAuth();
+  const [labsCompleted, setLabsCompleted] = useState(0);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [userAchievements, setUserAchievements] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (user) {
+      fetchUserData();
+    }
+  }, [user]);
+
+  const fetchUserData = async () => {
+    if (!user) return;
+
+    const { data: labData } = await supabase
+      .from('user_lab_progress')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('completed', true);
+
+    if (labData) {
+      setLabsCompleted(labData.length);
+    }
+
+    const { data: activityData } = await supabase
+      .from('user_activity_log')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (activityData) {
+      setRecentActivity(activityData);
+    }
+
+    const { data: achievementData } = await supabase
+      .from('user_achievements')
+      .select('achievement_id')
+      .eq('user_id', user.id);
+
+    if (achievementData) {
+      setUserAchievements(new Set(achievementData.map(a => a.achievement_id)));
+    }
+  };
+
   const achievements = [
     {
+      id: 'first-steps',
       name: 'First Steps',
       description: 'Complete your first vulnerability lab',
       icon: Target,
-      earned: false,
+      earned: userAchievements.has('first-steps'),
       points: 50,
     },
     {
+      id: 'sql-master',
       name: 'SQL Master',
       description: 'Complete all SQL Injection labs',
       icon: Award,
-      earned: false,
+      earned: userAchievements.has('sql-master'),
       points: 100,
     },
     {
+      id: 'xss-expert',
       name: 'XSS Expert',
       description: 'Master Cross-Site Scripting vulnerabilities',
       icon: Award,
-      earned: false,
+      earned: userAchievements.has('xss-expert'),
       points: 100,
     },
     {
+      id: 'tool-enthusiast',
       name: 'Tool Enthusiast',
       description: 'Use all 6 security tools',
       icon: Zap,
-      earned: false,
+      earned: userAchievements.has('tool-enthusiast'),
       points: 75,
     },
     {
+      id: 'week-streak',
       name: 'Week Streak',
       description: 'Practice for 7 consecutive days',
       icon: Calendar,
-      earned: false,
+      earned: userAchievements.has('week-streak'),
       points: 150,
     },
     {
+      id: 'advanced-hacker',
       name: 'Advanced Hacker',
       description: 'Complete all advanced labs',
       icon: Trophy,
-      earned: false,
+      earned: userAchievements.has('advanced-hacker'),
       points: 250,
     },
   ];
 
-  const recentActivity = [
-    {
-      type: 'lab',
-      name: 'SQL Injection Lab',
-      date: 'Today',
-      points: 100,
-    },
-    {
-      type: 'tool',
-      name: 'Used Nmap Scanner',
-      date: 'Today',
-      points: 10,
-    },
-    {
-      type: 'lab',
-      name: 'XSS Lab',
-      date: 'Yesterday',
-      points: 100,
-    },
-  ];
-
   const stats = [
-    { label: 'Total Points', value: '210', icon: Trophy, color: 'text-yellow-600 bg-yellow-100' },
-    { label: 'Labs Completed', value: '2/8', icon: Target, color: 'text-blue-600 bg-blue-100' },
-    { label: 'Current Streak', value: '2 days', icon: Zap, color: 'text-orange-600 bg-orange-100' },
+    { label: 'Total Points', value: profile?.total_points?.toString() || '0', icon: Trophy, color: 'text-yellow-600 bg-yellow-100' },
+    { label: 'Labs Completed', value: `${labsCompleted}/8`, icon: Target, color: 'text-blue-600 bg-blue-100' },
+    { label: 'Current Streak', value: `${profile?.current_streak || 0} days`, icon: Zap, color: 'text-orange-600 bg-orange-100' },
   ];
 
   return (

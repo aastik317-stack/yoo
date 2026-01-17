@@ -1,57 +1,64 @@
 export type Database = {
   public: {
     Tables: {
-      vulnerability_types: {
+      user_profiles: {
         Row: {
           id: string;
-          name: string;
-          description: string;
-          difficulty: 'beginner' | 'intermediate' | 'advanced';
-          category: string;
-          icon: string | null;
+          full_name: string;
+          age: number;
+          total_points: number;
+          current_streak: number;
+          skill_level: 'Beginner' | 'Intermediate' | 'Advanced';
           created_at: string;
+          updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['vulnerability_types']['Row'], 'id' | 'created_at'>;
-        Update: Partial<Database['public']['Tables']['vulnerability_types']['Insert']>;
-      };
-      labs: {
-        Row: {
-          id: string;
-          vulnerability_type_id: string | null;
-          title: string;
-          description: string;
-          instructions: string;
-          solution: string;
-          points: number;
-          created_at: string;
+        Insert: Omit<Database['public']['Tables']['user_profiles']['Row'], 'created_at' | 'updated_at'> & {
+          total_points?: number;
+          current_streak?: number;
+          skill_level?: 'Beginner' | 'Intermediate' | 'Advanced';
         };
-        Insert: Omit<Database['public']['Tables']['labs']['Row'], 'id' | 'created_at'>;
-        Update: Partial<Database['public']['Tables']['labs']['Insert']>;
+        Update: Partial<Database['public']['Tables']['user_profiles']['Insert']>;
       };
-      user_progress: {
+      user_lab_progress: {
         Row: {
           id: string;
           user_id: string;
-          lab_id: string | null;
+          lab_id: string;
           completed: boolean;
+          points_earned: number;
           completed_at: string | null;
           created_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['user_progress']['Row'], 'id' | 'created_at'>;
-        Update: Partial<Database['public']['Tables']['user_progress']['Insert']>;
+        Insert: Omit<Database['public']['Tables']['user_lab_progress']['Row'], 'id' | 'created_at'> & {
+          completed?: boolean;
+          points_earned?: number;
+          completed_at?: string | null;
+        };
+        Update: Partial<Database['public']['Tables']['user_lab_progress']['Insert']>;
       };
-      store_products: {
+      user_achievements: {
         Row: {
           id: string;
-          name: string;
-          description: string;
-          price: number;
-          image_url: string | null;
-          stock: number;
+          user_id: string;
+          achievement_id: string;
+          earned_at: string;
           created_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['store_products']['Row'], 'id' | 'created_at'>;
-        Update: Partial<Database['public']['Tables']['store_products']['Insert']>;
+        Insert: Omit<Database['public']['Tables']['user_achievements']['Row'], 'id' | 'earned_at' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['user_achievements']['Insert']>;
+      };
+      user_activity_log: {
+        Row: {
+          id: string;
+          user_id: string;
+          activity_type: string;
+          activity_data: Record<string, any>;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['user_activity_log']['Row'], 'id' | 'created_at'> & {
+          activity_data?: Record<string, any>;
+        };
+        Update: Partial<Database['public']['Tables']['user_activity_log']['Insert']>;
       };
     };
   };

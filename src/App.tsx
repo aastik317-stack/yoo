@@ -9,12 +9,19 @@ import { Progress } from './components/Progress';
 import { AIAssistant } from './components/AIAssistant';
 import { ToolPage } from './components/ToolPage';
 import { VoiceGuide } from './components/VoiceGuide';
+import { Login } from './components/Login';
+import { Signup } from './components/Signup';
+import { useAuth } from './contexts/AuthContext';
+import { Loader } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('labs');
   const [selectedLab, setSelectedLab] = useState<string | null>(null);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [showVoiceGuide, setShowVoiceGuide] = useState(true);
+  const [authView, setAuthView] = useState<'login' | 'signup'>('login');
+
+  const { user, loading } = useAuth();
 
   const handleLabSelect = (labType: string) => {
     setSelectedLab(labType);
@@ -31,6 +38,34 @@ function App() {
   const handleCloseToolPage = () => {
     setSelectedTool(null);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="h-12 w-12 text-white animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg font-semibold">Loading CyberSec Academy...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    if (authView === 'signup') {
+      return (
+        <Signup
+          onSwitchToLogin={() => setAuthView('login')}
+          onSignupSuccess={() => setAuthView('login')}
+        />
+      );
+    }
+    return (
+      <Login
+        onSwitchToSignup={() => setAuthView('signup')}
+        onLoginSuccess={() => {}}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
